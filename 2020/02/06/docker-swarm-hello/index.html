@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content>
+    <meta name="keyword" content>
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+          docker swarm（一） 入门 - 小耸的博客 | Spencer&#39;s Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://47.114.76.212/2020/02/06/docker-swarm-hello/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Spencer&#39;s Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    
+<!-- Image to hack wechat -->
+<!-- <img src="http://47.114.76.212/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('post-bg-hacker.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                        
+                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
+                        
+                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                        
+                    </div>
+                    <h1>docker swarm（一） 入门</h1>
+                    <h2 class="subheading">搭建一个简单的swarm集群</h2>
+                    <span class="meta">
+                        Posted by Spencer on
+                        2020-02-06
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Docker Swarm是容器的集群管理工具。它的主要特性：</p>
+<ul>
+<li>集成于Docker Engine的集群管理工具。</li>
+<li>分布式设计。从一个image生成整个集群。一个docker swarm下的不同node，可以分布于同一，或不同的物理设备上。</li>
+<li>灵活调度。按需启动或关闭容器。</li>
+<li>高可用性。支持监控容器状态，如果容器崩溃，可以自动重启容器。</li>
+<li>支持多样的网络配置。支持overlay、macvlan、bridge、host等网络形式。</li>
+<li>服务发现。</li>
+<li>负载均衡。</li>
+<li>加密传输。默认基于TLS实现容器间的交互，实现加密传输。</li>
+<li>升级回退。支持动态升级容器，如果升级后的容器运行不正常，可自动回退到上一版本。</li>
+</ul>
+<h2 id="主要概念"><a href="#主要概念" class="headerlink" title="主要概念"></a>主要概念</h2><h3 id="node（节点）"><a href="#node（节点）" class="headerlink" title="node（节点）"></a>node（节点）</h3><p>每个docker node都是docker engine的实例（可以理解成，每个docker node即是安装了docker环境的PC），可分为manager和worker两类。</p>
+<ul>
+<li>manager node：<ul>
+<li>给worker nodes分配任务（task）。</li>
+<li>识别worker nodes的状态，调度容器。</li>
+</ul>
+</li>
+<li>worker node<ul>
+<li>执行manager mode分配的任务（task）。</li>
+<li></li>
+</ul>
+</li>
+</ul>
+<h3 id="service（服务）与task（任务）"><a href="#service（服务）与task（任务）" class="headerlink" title="service（服务）与task（任务）"></a>service（服务）与task（任务）</h3><p>Docker Swarm通过一个YAML格式的文件，定义了生产环境（in production）中的Docker container行为。此文件包含对services定义、运行、扩容。</p>
+<p>service可以理解为是”containers in production”。它是一个swarm系统中最关键的定义。<br>一个service只能运行一个image，但是可以运行出同一个image的多个containers。</p>
+<p>一个task是swarm调度的最小单位，它运行于manager或worker nodes上。它即对应service中的一个container实例。它包含：</p>
+<ul>
+<li>一个container</li>
+<li>container启动后运行的指令</li>
+</ul>
+<h2 id="搭建一个Docker-Swarm"><a href="#搭建一个Docker-Swarm" class="headerlink" title="搭建一个Docker Swarm"></a>搭建一个Docker Swarm</h2><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>准备两个虚拟机，一个作为manager，一个作为worker。两个虚拟机间能ping通。并且要求以下端口开放访问：2377，2946。</p>
+<h3 id="创建Swarm"><a href="#创建Swarm" class="headerlink" title="创建Swarm"></a>创建Swarm</h3><p>在manager设备上，创建swarm，同时配置一下manager的ip。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker swarm init --advertise-addr 192.168.154.135</span><br><span class="line">Swarm initialized: current node (78ayx9kk6n3qr4gcn05nmuvzg) is now a manager.</span><br><span class="line"></span><br><span class="line">To add a worker to this swarm, run the following <span class="built_in">command</span>:</span><br><span class="line"></span><br><span class="line">    docker swarm join --token SWMTKN-1-523lnlcl8xbol5hmg4aab6ur2g2flmdx5zxb31qzj8r8ty0mbo-bhfp0yf7er2vysftf753s3rz5 192.168.154.135:2377</span><br><span class="line"></span><br><span class="line">To add a manager to this swarm, run <span class="string">'docker swarm join-token manager'</span> and follow the instructions.</span><br></pre></td></tr></table></figure>
+<p>通过<code>docker info</code>确认一下swarm已经创建。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ docker info</span><br><span class="line">Client:</span><br><span class="line"> Debug Mode: <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Containers: 5</span><br><span class="line">  Running: 0</span><br><span class="line">  Paused: 0</span><br><span class="line">  Stopped: 5</span><br><span class="line">...</span><br><span class="line"> Swarm: active</span><br><span class="line">  NodeID: 78ayx9kk6n3qr4gcn05nmuvzg</span><br><span class="line">  Is Manager: <span class="literal">true</span></span><br><span class="line">  ClusterID: ommhsz8xug6ltvauyusfn3vsp</span><br><span class="line">  Managers: 1</span><br><span class="line">  Nodes: 1</span><br><span class="line">  Default Address Pool: 10.0.0.0/8  </span><br><span class="line">  SubnetSize: 24</span><br><span class="line">  Data Path Port: 4789</span><br><span class="line">  Orchestration:</span><br><span class="line">   Task History Retention Limit: 5</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>通过<code>docker node ls</code>确认docker node信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker node ls</span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line">78ayx9kk6n3qr4gcn05nmuvzg *   ubuntu              Ready               Active              Leader              19.03.5</span><br></pre></td></tr></table></figure>
+<h3 id="把worker-nodes加入swarm"><a href="#把worker-nodes加入swarm" class="headerlink" title="把worker nodes加入swarm"></a>把worker nodes加入swarm</h3><p>在上一步创建swarm时，docker提示了加入此swarm应执行的命令。在worker node上执行这些命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$  docker swarm join --token SWMTKN-1-523lnlcl8xbol5hmg4aab6ur2g2flmdx5zxb31qzj8r8ty0mbo-bhfp0yf7er2vysftf753s3rz5 192.168.154.135:2377</span><br><span class="line">This node joined a swarm as a worker.</span><br></pre></td></tr></table></figure>
+<p>如果你没有记录下这个加入swarm的命令，可以在manager node上执行<code>docker swarm join-token worker</code>以重新获取命令。</p>
+<p>再回到manager节点上，查看当前swarm的成员。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker node ls</span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line">78ayx9kk6n3qr4gcn05nmuvzg *   ubuntu              Ready               Active              Leader              19.03.5</span><br><span class="line">lugs1vyy3o6z3dvnpytkxf6yi     ubuntu              Ready               Active                                  19.03.5</span><br></pre></td></tr></table></figure>
+<h3 id="创建并部署一个service"><a href="#创建并部署一个service" class="headerlink" title="创建并部署一个service"></a>创建并部署一个service</h3><p>在manager节点上，创建一个service。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker service create --replicas 1 --name helloworld alpine ping docker.com</span><br></pre></td></tr></table></figure>
+<p>参数解释：</p>
+<ul>
+<li>–replicas：service运行的实例个数</li>
+<li>–name: 命名service为helloword</li>
+<li>alpine ping docker.com: 定义此service为，在<br>Alpine Linux容器中，执行ping docker.com</li>
+</ul>
+<p><code>docker service ls</code>确认一下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker service ls</span><br><span class="line">ID                  NAME                MODE                REPLICAS            IMAGE               PORTS</span><br><span class="line">uyxa5ye0061k        helloworld          replicated          1/1                 alpine:latest</span><br></pre></td></tr></table></figure>
+<p>在执行了docker service create之后，此service即是已经被拆解成task执行了。通过以下命令可以查看它的执行状态。这里不具体展开了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker service inspect --pretty &lt;SERVICE-ID&gt;</span><br><span class="line">docker service ps &lt;SERVICE-ID&gt;</span><br></pre></td></tr></table></figure>
+<p><code>docker ps</code>可以查看在当前node上执行的task。此service当前在manager node上执行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</span><br><span class="line">a1f880ea0a72        alpine:latest       <span class="string">"ping docker.com"</span>   16 minutes ago      Up 15 minutes                           helloworld.1.crxx3hwti4wmj5p6zyqe8yi03</span><br></pre></td></tr></table></figure>
+<h3 id="service缩容与扩容"><a href="#service缩容与扩容" class="headerlink" title="service缩容与扩容"></a>service缩容与扩容</h3><p><code>docker service scale</code>可以修改一个serivce衍生出的副本数量，也就是task数量。通过以下命令将helloworld扩容到5个task。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker service scale helloworld=5</span><br><span class="line">helloworld scaled to 5</span><br><span class="line">overall progress: 5 out of 5 tasks </span><br><span class="line">1/5: running   [==================================================&gt;] </span><br><span class="line">2/5: running   [==================================================&gt;] </span><br><span class="line">3/5: running   [==================================================&gt;] </span><br><span class="line">4/5: running   [==================================================&gt;] </span><br><span class="line">5/5: running   [==================================================&gt;] </span><br><span class="line">verify: Service converged</span><br></pre></td></tr></table></figure>
+<p>查看service在各nodes上的运行情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ docker service ps helloworld</span><br><span class="line">ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE                ERROR               PORTS</span><br><span class="line">crxx3hwti4wm        helloworld.1        alpine:latest       ubuntu              Running             Running 55 minutes ago                           </span><br><span class="line">1kej5h5qmkvt        helloworld.2        alpine:latest       ubuntu-2            Running             Running about a minute ago                       </span><br><span class="line">u7i09cvrv7sj        helloworld.3        alpine:latest       ubuntu-2            Running             Running about a minute ago                       </span><br><span class="line">glipqhq70jo7         \_ helloworld.3    alpine:latest       ubuntu-2            Shutdown            Shutdown 8 minutes ago                           </span><br><span class="line">x9qkewnqf2fa        helloworld.4        alpine:latest       ubuntu              Running             Running about a minute ago                       </span><br><span class="line">vwkke0hvmxk8         \_ helloworld.4    alpine:latest       ubuntu-2            Shutdown            Shutdown 8 minutes ago                           </span><br><span class="line">dsyijxuant14        helloworld.5        alpine:latest       ubuntu-2            Running             Running about a minute ago                       </span><br><span class="line">ku0o7qg243tl         \_ helloworld.5    alpine:latest       ubuntu-2            Shutdown            Shutdown 8 minutes ago</span><br></pre></td></tr></table></figure>
+<h3 id="删除service"><a href="#删除service" class="headerlink" title="删除service"></a>删除service</h3><p>执行<code>docker service rm</code>删除service。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker service rm helloworld</span><br><span class="line">helloworld</span><br></pre></td></tr></table></figure>
+<p>若干秒后，此service衍生出的task也都停止运行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker service ps helloworld</span><br><span class="line">no such service: helloworld</span><br></pre></td></tr></table></figure>
+
+
+                <hr>
+
+                
+
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/2020/02/11/docker-swarm-inggress-routing-mesh/" data-toggle="tooltip" data-placement="top" title="docker swarm（二） Ingress Routing Mesh的理解与应用">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/2020/01/24/docker-hello/" data-toggle="tooltip" data-placement="top" title="用docker打包一个demo image">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+            </div>
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                        
+                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
+                        
+                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://www.jianshu.com/u/6a483aeca328" target="_blank">简书·小耸</a></li>
+                    
+                </ul>
+                
+            </div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "/";
+    var disqus_identifier = "http://47.114.76.212/2020/02/06/docker-swarm-hello/";
+    var disqus_url = "http://47.114.76.212/2020/02/06/docker-swarm-hello/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/xiao-song-42-66">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/smilexie">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Spencer&#39;s Blog 2020 
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    Ported by <a href="http://blog.kaijun.rocks">Kaijun</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=kaijun&repo=hexo-theme-huxblog&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://47.114.76.212/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = '09f6ead73646a16aed3bb2c9857d0983';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="http://47.114.76.212/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
