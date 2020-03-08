@@ -254,7 +254,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh 1-hxyiridl2b bridge fdb</span><br><span class="line">...</span><br><span class="line">02:42:0a:c8:00:05 dev vxlan0 dst 192.168.154.136 link-netnsid 0 self permanent</span><br><span class="line">02:42:0a:c8:00:04 dev vxlan0 dst 192.168.154.136 link-netnsid 0 self permanent</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 <p>这可以理解为VxLAN的VTEP表，即根据MAC地址，查找出VxLAN报文应该封装的外层IP，是192.168.154.136</p>
 <p>我们可以画出东西向流量的完整的拓扑了：</p>
-<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/docker_swarm_network/setp_2.png" alt="step-2"></p>
+<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/docker_swarm_network/step_2.png" alt="step-2"></p>
 
 
                 <hr>
