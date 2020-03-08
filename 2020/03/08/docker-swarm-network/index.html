@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content>
+    <meta name="keyword" content>
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+          docker swarm（三） overlay与docker_gwbridge网络详解 - 小耸的博客 | Spencer&#39;s Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://47.114.76.212/2020/03/08/docker-swarm-network/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Spencer&#39;s Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    
+<!-- Image to hack wechat -->
+<!-- <img src="http://47.114.76.212/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('post-bg-desk.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                        
+                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
+                        
+                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                        
+                    </div>
+                    <h1>docker swarm（三） overlay与docker_gwbridge网络详解</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        Posted by Spencer on
+                        2020-03-08
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>本文通过实验，帮助大家认识docker swarm中的overlay和docker_gwbridge网络。</p>
+<h2 id="实验环境搭建"><a href="#实验环境搭建" class="headerlink" title="实验环境搭建"></a>实验环境搭建</h2><p>先建立两台物理机组成的docker swarm网络（方法可见<a href="https://xiaosong.fun/2020/02/06/docker-swarm-hello" target="_blank" rel="noopener">《docker swarm（一）： 入门，搭建一个简单的swarm集群》</a>）:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker node ls</span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line">43k0p9fnwu9dhsyr0n6utfynn *   ubuntu              Ready               Active              Leader              19.03.5</span><br><span class="line">gorkh8cb5ylb7szzbbrp2sheu     ubuntu-2            Ready               Active                                  19.03.5</span><br></pre></td></tr></table></figure>
+<p>创建一个overlay网络。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create -d overlay --attachable --subnet 10.200.0.0/16 overlay_test</span><br></pre></td></tr></table></figure></p>
+<p>当前建立的docker相关的网络有：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">a473a52d686d        bridge              bridge              <span class="built_in">local</span></span><br><span class="line">5e1880193fbf        docker_gwbridge     bridge              <span class="built_in">local</span></span><br><span class="line">62ba25167374        host                host                <span class="built_in">local</span></span><br><span class="line">jjyg85t5ta3k        ingress             overlay             swarm</span><br><span class="line">d056684646b3        none                null                <span class="built_in">local</span></span><br><span class="line">hxyiridl2b9r        overlay_test        overlay             swarm</span><br></pre></td></tr></table></figure>
+<p>这里关注两个网络：</p>
+<ul>
+<li>overlay_test：overlay网络，实现容器间东西向流量的网络。</li>
+<li>docker_gwbridge: 容器收发南北向报文的网络。</li>
+</ul>
+<h2 id="工具准备"><a href="#工具准备" class="headerlink" title="工具准备"></a>工具准备</h2><p>我们知道，docker是基于namespace，划分了网络空间。这里先准备一段脚本，由于在各个namespece中，执行对应的网络命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash	</span></span><br><span class="line">NAMESPACE=<span class="variable">$1</span>	</span><br><span class="line"><span class="keyword">if</span> [[ -z <span class="variable">$NAMESPACE</span> ]]; <span class="keyword">then</span>	</span><br><span class="line">    ls -1 /var/run/docker/netns/	</span><br><span class="line">    <span class="built_in">exit</span> 0	</span><br><span class="line"><span class="keyword">fi</span>	</span><br><span class="line">NAMESPACE_FILE=/var/run/docker/netns/<span class="variable">$&#123;NAMESPACE&#125;</span>	</span><br><span class="line"><span class="keyword">if</span> [[ ! -f <span class="variable">$NAMESPACE_FILE</span> ]]; <span class="keyword">then</span>	</span><br><span class="line">    NAMESPACE_FILE=$(docker inspect -f <span class="string">"&#123;&#123;.NetworkSettings.SandboxKey&#125;&#125;"</span> <span class="variable">$NAMESPACE</span> 2&gt;/dev/null)	</span><br><span class="line"><span class="keyword">fi</span>	</span><br><span class="line"><span class="keyword">if</span> [[ ! -f <span class="variable">$NAMESPACE_FILE</span> ]]; <span class="keyword">then</span>	</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"Cannot open network namespace '<span class="variable">$NAMESPACE</span>': No such file or directory"</span>	</span><br><span class="line">    <span class="built_in">exit</span> 1	</span><br><span class="line"><span class="keyword">fi</span>	</span><br><span class="line"><span class="built_in">shift</span>	</span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$#</span> -lt 1 ]]; <span class="keyword">then</span>	</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"No command specified"</span>	</span><br><span class="line">    <span class="built_in">exit</span> 1	</span><br><span class="line"><span class="keyword">fi</span>	</span><br><span class="line">nsenter --net=<span class="variable">$&#123;NAMESPACE_FILE&#125;</span> <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
+<p>它可以查看有哪些namespace：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh </span><br><span class="line">1-k2rx924tgr</span><br><span class="line">eab3f856fe9a</span><br><span class="line">ingress_sbox</span><br></pre></td></tr></table></figure>
+<p>还可以在指定的namespace下执行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh eab3f856fe9a ip link</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">170: eth0@if171: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue state UP mode DEFAULT group default </span><br><span class="line">    link/ether 02:42:0a:00:00:54 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">172: eth1@if173: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default </span><br><span class="line">    link/ether 02:42:ac:12:00:03 brd ff:ff:ff:ff:ff:ff link-netnsid 1</span><br></pre></td></tr></table></figure>
+<p>第二个工具，find_links.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash	</span></span><br><span class="line">DOCKER_NETNS_SCRIPT=./docker_netns.sh	</span><br><span class="line">IFINDEX=<span class="variable">$1</span>	</span><br><span class="line"><span class="keyword">if</span> [[ -z <span class="variable">$IFINDEX</span> ]]; <span class="keyword">then</span>	</span><br><span class="line">    <span class="keyword">for</span> namespace <span class="keyword">in</span> $(<span class="variable">$DOCKER_NETNS_SCRIPT</span>); <span class="keyword">do</span>	</span><br><span class="line">        <span class="built_in">printf</span> <span class="string">"\e[1;31m%s: \e[0m\n"</span> <span class="variable">$namespace</span>	</span><br><span class="line">        <span class="variable">$DOCKER_NETNS_SCRIPT</span> <span class="variable">$namespace</span> ip -c -o link	</span><br><span class="line">        <span class="built_in">printf</span> <span class="string">"\n"</span>	</span><br><span class="line">    <span class="keyword">done</span>	</span><br><span class="line"><span class="keyword">else</span>	</span><br><span class="line">    <span class="keyword">for</span> namespace <span class="keyword">in</span> $(<span class="variable">$DOCKER_NETNS_SCRIPT</span>); <span class="keyword">do</span>	</span><br><span class="line">        <span class="keyword">if</span> <span class="variable">$DOCKER_NETNS_SCRIPT</span> <span class="variable">$namespace</span> ip -c -o link | grep -Pq <span class="string">"^<span class="variable">$IFINDEX</span>: "</span>; <span class="keyword">then</span>	</span><br><span class="line">            <span class="built_in">printf</span> <span class="string">"\e[1;31m%s: \e[0m\n"</span> <span class="variable">$namespace</span>	</span><br><span class="line">            <span class="variable">$DOCKER_NETNS_SCRIPT</span> <span class="variable">$namespace</span> ip -c -o link | grep -P <span class="string">"^<span class="variable">$IFINDEX</span>: "</span>;	</span><br><span class="line">            <span class="built_in">printf</span> <span class="string">"\n"</span>	</span><br><span class="line">        <span class="keyword">fi</span>	</span><br><span class="line">    <span class="keyword">done</span>	</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<p>这个脚本可以根据ifindex查找接口所在的namespace。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./find_links.sh 60</span><br><span class="line">1-hxyiridl2b: </span><br><span class="line">60: veth1@if59: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue master br0 state UP mode DEFAULT group default \    link/ether 4a:0a:52:98:84:a7 brd ff:ff:ff:ff:ff:ff link-netnsid 2</span><br></pre></td></tr></table></figure>
+<h2 id="网络结构分析"><a href="#网络结构分析" class="headerlink" title="网络结构分析"></a>网络结构分析</h2><p>以下，我们通过实验，了解一下overlay网络与docker_gwbridge网络。</p>
+<p>我们现在在两个nodes上都创建容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --name busybox --net overlay_test busybox sleep 36000</span><br></pre></td></tr></table></figure>
+<p>在容器的环境下，查看一下网络连接：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> busybox ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">59: eth0@if60: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue </span><br><span class="line">    link/ether 02:42:0a:c8:00:02 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 10.200.0.2/16 brd 10.200.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">61: eth1@if62: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue </span><br><span class="line">    link/ether 02:42:ac:12:00:03 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.18.0.3/16 brd 172.18.255.255 scope global eth1</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>我们发现，除了回环口外，还有两个接口。10.200.0.2/16即是容器busybox在overlay_test网络上的接口的IP地址。172.18.0.3/16是容器busybox在docker_gwbridge网络上的接口的IP地址。</p>
+<p>到目前为止，我们看到的容器网络是这样的。我们只看到了网络地址，还不知道它们间的报文是如何交互的。(192.168.154.2是宿主机的网关)</p>
+<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/docker_swarm_network/step_0.png" alt="step 0"></p>
+<h3 id="南北向流量"><a href="#南北向流量" class="headerlink" title="南北向流量"></a>南北向流量</h3><p>我们尝试从容器内跟踪访问外部IP的路由</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">exec</span> busybox traceroute baidu.com</span><br><span class="line">traceroute to baidu.com (220.181.38.148), 30 hops max, 46 byte packets</span><br><span class="line"> 1  bogon (172.18.0.1)  0.003 ms  0.004 ms  0.006 ms</span><br><span class="line"> 2  bogon (192.168.154.2)  0.148 ms  0.330 ms  0.175 ms</span><br><span class="line"> ...</span><br></pre></td></tr></table></figure>
+<p>可见，流量经过172.18.0.1，然后访问到宿主机网关上。</p>
+<p>接下来，我们尝试解析出内部网络连接。上面我们已经得知，从容器内部的视角，172.18.0.3所在的接口为：61: eth1@if62。我们可以理解为，此接口的ifindex为61，通过veth连接到ifindex为62的接口上。</p>
+<p>我们查找看看62接口的namespace是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./find_links.sh 62</span><br></pre></td></tr></table></figure>
+<p>居然没有显示。这就说明62接口是在宿主机的主namespace中的。我们在宿主机上看看：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">$ ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: ens33: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:e5:66:45 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.154.135/24 brd 192.168.154.255 scope global dynamic noprefixroute ens33</span><br><span class="line">       valid_lft 1502sec preferred_lft 1502sec</span><br><span class="line">    inet6 fe80::f378:1d3:6cde:69bb/64 scope link noprefixroute </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">3: docker_gwbridge: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default </span><br><span class="line">    link/ether 02:42:50:e9:2d:e1 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.18.0.1/16 brd 172.18.255.255 scope global docker_gwbridge</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::42:50ff:fee9:2de1/64 scope link </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">4: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default </span><br><span class="line">    link/ether 02:42:5d:<span class="built_in">cd</span>:c3:16 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">23: veth6ee82c3@if22: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker_gwbridge state UP group default </span><br><span class="line">    link/ether 4a:71:4d:f7:0e:4e brd ff:ff:ff:ff:ff:ff link-netnsid 1</span><br><span class="line">    inet6 fe80::4871:4dff:fef7:e4e/64 scope link </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">62: veth0204500@if61: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker_gwbridge state UP group default </span><br><span class="line">    link/ether 9e:d6:10:49:8e:42 brd ff:ff:ff:ff:ff:ff link-netnsid 4</span><br><span class="line">    inet6 fe80::9cd6:10ff:fe49:8e42/64 scope link </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>可见，62接口的master是docker_gwbridge。也就是说，62接口被桥接到docker_gwbridge中。</p>
+<p>南北向流量在经过宿主机出口时，还做了NAT转换</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo iptables-save -t nat  | grep -- <span class="string">'-A POSTROUTING'</span></span><br><span class="line">-A POSTROUTING -o docker_gwbridge -m addrtype --src-type LOCAL -j MASQUERADE</span><br><span class="line">-A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE</span><br><span class="line">-A POSTROUTING -s 172.18.0.0/16 ! -o docker_gwbridge -j MASQUERAD</span><br></pre></td></tr></table></figure>
+<p>于是，南北向的流量走向就很清晰了。我们的网络拓扑可以更新为：</p>
+<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/docker_swarm_network/step_1.png" alt="step 1"></p>
+<h3 id="东西向流量"><a href="#东西向流量" class="headerlink" title="东西向流量"></a>东西向流量</h3><p>东西向流量即容器与容器间的流量。我们先测试一下容器间的连通性。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">exec</span> busybox ping 10.200.0.2</span><br><span class="line">PING 10.200.0.2 (10.200.0.2): 56 data bytes</span><br><span class="line">64 bytes from 10.200.0.2: seq=0 ttl=64 time=41.177 ms</span><br><span class="line">64 bytes from 10.200.0.2: seq=1 ttl=64 time=1.181 ms</span><br><span class="line">64 bytes from 10.200.0.2: seq=2 ttl=64 time=1.110 ms</span><br></pre></td></tr></table></figure>
+<p>接下来探索这个流量是怎么走的。我们再看一下容器中的网络配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">exec</span> busybox ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">59: eth0@if60: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue </span><br><span class="line">    link/ether 02:42:0a:c8:00:02 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 10.200.0.2/16 brd 10.200.255.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">61: eth1@if62: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue </span><br><span class="line">    link/ether 02:42:ac:12:00:03 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 172.18.0.3/16 brd 172.18.255.255 scope global eth1</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>10.200.0.2所在的接口为，59: eth0@if60。即本接口ifindex为59，连接到ifindex为60的接口上。我们查询一下60接口所在的namespaec。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./find_links.sh 60</span><br><span class="line">1-hxyiridl2b: </span><br><span class="line">60: veth1@if59: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue master br0 state UP mode DEFAULT group default \    link/ether 4a:0a:52:98:84:a7 brd ff:ff:ff:ff:ff:ff link-netnsid 2</span><br></pre></td></tr></table></figure>
+<p>可见60接口处于1-hxyiridl2b这一namespace中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh 1-hxyiridl2b ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: br0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue state UP group default </span><br><span class="line">    link/ether 0e:2d:34:e6:eb:b7 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 10.200.0.1/16 brd 10.200.255.255 scope global br0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">56: vxlan0@if56: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue master br0 state UNKNOWN group default </span><br><span class="line">    link/ether 0e:2d:34:e6:eb:b7 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">58: veth0@if57: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue master br0 state UP group default </span><br><span class="line">    link/ether ea:c1:db:d4:b1:83 brd ff:ff:ff:ff:ff:ff link-netnsid 1</span><br><span class="line">60: veth1@if59: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue master br0 state UP group default </span><br><span class="line">    link/ether 4a:0a:52:98:84:a7 brd ff:ff:ff:ff:ff:ff link-netnsid 2</span><br></pre></td></tr></table></figure>
+<p>在这个namespace中，有一个vxlan出口。docker overlsy就是通过overlay隧道与其它容器通信的。</p>
+<p>两个容器虽然是通过vxlan隧道通信，但容器内部却不感知。它们只能看到两个容器处于同一个二层网络中。由vxlan接口将二层报文封装在UDP报文的payload中，发到对端，再由对端的vxlan接口解封装。</p>
+<p>我们查看一下namespace 1-hxyiridl2b中的arp地址表：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh 1-hxyiridl2b ip neigh</span><br><span class="line">10.200.0.5 dev vxlan0 lladdr 02:42:0a:c8:00:05 PERMANENT</span><br><span class="line">10.200.0.4 dev vxlan0 lladdr 02:42:0a:c8:00:04 PERMANENT</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，远端node中的容器IP 10.200.0.4，有体现在本端的arp地址表中。即是通过查找此表，得到对端的二层地址。</p>
+<p>我们再来看看，vxlan报文的出口在哪里：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./docker_netns.sh 1-hxyiridl2b bridge fdb</span><br><span class="line">...</span><br><span class="line">02:42:0a:c8:00:05 dev vxlan0 dst 192.168.154.136 link-netnsid 0 self permanent</span><br><span class="line">02:42:0a:c8:00:04 dev vxlan0 dst 192.168.154.136 link-netnsid 0 self permanent</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>这可以理解为VxLAN的VTEP表，即根据MAC地址，查找出VxLAN报文应该封装的外层IP，是192.168.154.136</p>
+<p>我们可以画出东西向流量的完整的拓扑了：</p>
+<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/docker_swarm_network/setp_2.png" alt="step-2"></p>
+
+
+                <hr>
+
+                
+
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/2020/02/14/v-day/" data-toggle="tooltip" data-placement="top" title="最长情的告白">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+            </div>
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                        
+                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
+                        
+                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://www.jianshu.com/u/6a483aeca328" target="_blank">简书·小耸</a></li>
+                    
+                </ul>
+                
+            </div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "/";
+    var disqus_identifier = "http://47.114.76.212/2020/03/08/docker-swarm-network/";
+    var disqus_url = "http://47.114.76.212/2020/03/08/docker-swarm-network/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/xiao-song-42-66">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/smilexie">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Spencer&#39;s Blog 2020 
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    Ported by <a href="http://blog.kaijun.rocks">Kaijun</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=kaijun&repo=hexo-theme-huxblog&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://47.114.76.212/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = '09f6ead73646a16aed3bb2c9857d0983';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="http://47.114.76.212/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
