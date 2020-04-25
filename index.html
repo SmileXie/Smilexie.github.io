@@ -184,6 +184,28 @@
 
 <div class="post-preview">
 
+    <a href="/2020/04/25/vm-cache/">
+        <h2 class="post-title">
+            Linux cache参数调优
+        </h2>
+        <h3 class="post-subtitle">
+            Linux cache参数调优
+        </h3>
+        <div class="post-content-preview">
+            缓存机制（cache）是保证Linux环境下对硬盘/flash操作效率的有效方式。cache建立在内存中，它缓存了硬盘/flash的数据，当脏数据到达一定水限时，再异步地将数据刷入硬盘。这可以加速进程的文件系统访问操作。但是也有风险，当数据未写入硬盘前设备重启，存在数据丢失的风险。
+如果缓存相关参数设置得不好，对系统的运行反而会有不良的影响。如果cache过大，当需要把cache中的巨量数据......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Spencer on
+        2020-04-25
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2020/03/08/docker-swarm-network/">
         <h2 class="post-title">
             docker swarm（三） overlay与docker_gwbridge网络详解
@@ -402,6 +424,10 @@ SDN：
                         
                             
                             <a href="/tags/#容器" title="容器" rel="3">容器</a>
+                            
+                        
+                            
+                        
                             
                         
                             
