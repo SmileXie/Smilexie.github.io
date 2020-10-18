@@ -34,6 +34,10 @@ $(document).ready(function () {
 	$('iframe[src*="vimeo.com"]').addClass('embed-responsive-item');
 });
 
+var inputArea       = document.querySelector("#local-search-input");
+inputArea.onclick   = function(){ getSearchFile(); this.onclick = null }
+inputArea.onkeydown = function(){ if(event.keyCode == 13) return false }
+
 // Navigation Scripts to Show Header on Scroll-Up
 jQuery(document).ready(function($) {
     var MQL = 1170;
