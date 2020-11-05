@@ -13,11 +13,11 @@
 
     <title>
         
-          小耸的博客 | Spencer&#39;s Blog
+          为什么TCP是三次握手？而不是两次或四次？ - 小耸的博客 | Spencer&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="http://47.114.76.212/page/2/">
+    <link rel="canonical" href="http://47.114.76.212/2020/11/05/three-handshake/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -147,245 +147,232 @@
 
 
     <!-- Main Content -->
-    <!-- Page Header -->
-<header class="intro-header" style="background-image: url('/img/post-bg-universe.jpg')">
+    
+<!-- Image to hack wechat -->
+<!-- <img src="http://47.114.76.212/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('post-bg-unix-linux.jpg')
+    }
+</style>
+<header class="intro-header" >
     <div class="container">
         <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
-                <div class="site-heading">
-                    <h1>Spencer&#39;s Blog</h1>
-                    <!--<hr class="small">-->
-                    <span class="subheading">Laugh and the world laughs with you, weep and you weep alone.</span>
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#三次握手" title="三次握手">三次握手</a>
+                        
+                          <a class="tag" href="/tags/#TCP" title="TCP">TCP</a>
+                        
+                    </div>
+                    <h1>为什么TCP是三次握手？而不是两次或四次？</h1>
+                    <h2 class="subheading">为什么TCP是三次握手？而不是两次或四次？</h2>
+                    <span class="meta">
+                        Posted by Spencer on
+                        2020-11-05
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 </header>
 
-<!-- Main Content -->
-<div class="container">
-    <div class="row">
-        
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
 
-<!-- USE SIDEBAR -->
     <!-- Post Container -->
-
             <div class="
-                col-lg-8 col-lg-offset-1
-                col-md-8 col-md-offset-1
-                col-sm-12
-                col-xs-12
-                post-container
-            ">
-            
-                <!-- Main Content -->
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>为什么TCP是三次握手？而不是两次或四次？</p>
+<h2 id="TCP连接建立的条件"><a href="#TCP连接建立的条件" class="headerlink" title="TCP连接建立的条件"></a>TCP连接建立的条件</h2><p>我们这里从TCP连接建立的前提入手。TCP连接建立的前提，是通信的双方都要知道本方和对方的发送和接收功能，都是正常的。也就是在TCP连接建立之前，有以下八个待确认项。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>服务端发送</th>
+<th>服务端接收</th>
+<th>客户端发送</th>
+<th>客户端接收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务端</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+</tr>
+</tbody>
+</table>
+<p>图例：○：待确认，√：已确认</p>
+<h2 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h2><h3 id="第一次握手"><a href="#第一次握手" class="headerlink" title="第一次握手"></a>第一次握手</h3><p>客户端向服务端发送连接请求报文段。该报文段的头部中SYN=1，ACK=0，seq=x。<br>服务端接收到报文后，可以确认客户端的发送功能，服务端的接收功能，都是正常的。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>服务端发送</th>
+<th>服务端接收</th>
+<th>客户端发送</th>
+<th>客户端接收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务端</td>
+<td>○</td>
+<td>√</td>
+<td>√</td>
+<td>○</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+<td>○</td>
+</tr>
+</tbody>
+</table>
+<h3 id="第二次握手"><a href="#第二次握手" class="headerlink" title="第二次握手"></a>第二次握手</h3><p>服务端收到连接请求报文段后，如果同意连接，则会发送一个应答：SYN=1，ACK=1，seq=y，ack=x+1。<br>客户端接收到第二次握手报文后，可以确认服务端的发送功能，客户端的接收功能是正常的。不过，此时服务端并不知道自己的发送功能，客户端的接收功能是否正常。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>服务端发送</th>
+<th>服务端接收</th>
+<th>客户端发送</th>
+<th>客户端接收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务端</td>
+<td>○</td>
+<td>√</td>
+<td>√</td>
+<td>○</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+</tbody>
+</table>
+<h3 id="第三次握手"><a href="#第三次握手" class="headerlink" title="第三次握手"></a>第三次握手</h3><p>当客户端收到连接同意的应答后，还要向服务端发送一个确认报文段，表示：服务端发来的连接同意应答已经成功收到。该报文段的头部为：ACK=1，seq=x+1，ack=y+1<br>此时，服务端就可以确认自己的发送功能，客户端的接收功能是正常的。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>服务端发送</th>
+<th>服务端接收</th>
+<th>客户端发送</th>
+<th>客户端接收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务端</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+</tbody>
+</table>
+<p>至此，八个确认项都确认完成。服务端和客户端就可以开始愉快地通信了。</p>
 
 
-<div class="post-preview">
+                <hr>
 
-    <a href="/2018/08/20/sdn-flow-id/">
-        <h2 class="post-title">
-            SDN环境下的网络流量识别
-        </h2>
-        <h3 class="post-subtitle">
-            基于神经网络与Openflow
-        </h3>
-        <div class="post-content-preview">
-            近来作成了一篇论文，发表于IHMSC 2018。把神经网络知识应用到网络流量识别中。
-论文主旨这篇论文并没有高深的理论研究，可以说是一篇纯应用性质的论文。把SDN与神经网络结合起来，去实现一个网络流量分类系统。SDN与神经网络可以说是一对神仙CP。
-SDN：
+                
 
-全局性的网络抽象，很方便地收集大量流量特征
-在服务器端可以提供快速的算力支持
-网络可编程
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/2020/10/18/hello-world/" data-toggle="tooltip" data-placement="top" title="Hello World!">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
 
-神经网络：
+                
 
-需要大量的数据以供训练
-需......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Spencer on
-        2018-08-20
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2016/08/21/fz-res/">
-        <h2 class="post-title">
-            从数据角度解析福州美食
-        </h2>
-        <h3 class="post-subtitle">
-            从数据角度解析福州美食
-        </h3>
-        <div class="post-content-preview">
-            作为一个伪吃货（很想吃但有很多忌口，同时又吃不胖），怀着为福州吃货服务的理想，我决定：我来爬爬餐厅。
-源代码Talk is cheap, show me the code. 依照惯例，先贴代码。https://github.com/SmileXie/dianping_crawler用python3来收集数据，用MySQL来保存、分析数据。编码中用到了几个Python库：Requests, B......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Spencer on
-        2016-08-21
-    </p>
-
-</div>
-<hr>
-
-
-
-<!-- Pager -->
-
-<ul class="pager">
-    
-        <li class="previous">
-            <a href="/">&larr; Newer Posts</a>
-        </li>
-    
-    
-</ul>
-
-
-
-                <!-- 如果开启评论功能 -->
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
                 
 
             </div>
-    <!-- Sidebar Container -->
+    <!-- Side Catalog Container -->
+        
             <div class="
-                col-lg-3 col-lg-offset-0
-                col-md-3 col-md-offset-0
-                col-sm-12
-                col-xs-12
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
                 sidebar-container
-            ">
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
                 <!-- Featured Tags -->
                 
                 <section>
                     <!-- no hr -->
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
+                       
+                          <a class="tag" href="/tags/#三次握手" title="三次握手">三次握手</a>
                         
-                            
-                            <a href="/tags/#docker" title="docker" rel="4">docker</a>
-                            
-                        
-                            
-                            <a href="/tags/#docker swarm" title="docker swarm" rel="3">docker swarm</a>
-                            
-                        
-                            
-                            <a href="/tags/#容器" title="容器" rel="3">容器</a>
-                            
-                        
-                            
-                            <a href="/tags/#爬虫" title="爬虫" rel="1">爬虫</a>
-                            
-                        
-                            
-                            <a href="/tags/#日记" title="日记" rel="3">日记</a>
-                            
-                        
-                            
-                            <a href="/tags/#Linux" title="Linux" rel="2">Linux</a>
-                            
-                        
-                            
-                            <a href="/tags/#内存" title="内存" rel="1">内存</a>
-                            
-                        
-                            
-                            <a href="/tags/#三次握手" title="三次握手" rel="1">三次握手</a>
-                            
-                        
-                            
-                            <a href="/tags/#TCP" title="TCP" rel="1">TCP</a>
-                            
-                        
-                            
-                            <a href="/tags/#Cache" title="Cache" rel="1">Cache</a>
-                            
-                        
-                            
-                            <a href="/tags/#程序人生" title="程序人生" rel="1">程序人生</a>
-                            
-                        
-                            
-                            <a href="/tags/#神经网络" title="神经网络" rel="1">神经网络</a>
-                            
-                        
-                            
-                            <a href="/tags/#AI" title="AI" rel="1">AI</a>
-                            
-                        
-                            
-                            <a href="/tags/#Openflow" title="Openflow" rel="1">Openflow</a>
-                            
-                        
-                            
-                            <a href="/tags/#SDN" title="SDN" rel="1">SDN</a>
-                            
-                        
-                            
-                            <a href="/tags/#流量识别" title="流量识别" rel="1">流量识别</a>
-                            
+                          <a class="tag" href="/tags/#TCP" title="TCP">TCP</a>
                         
                     </div>
                 </section>
                 
 
-                <!-- Short About -->
-                <section class="visible-md visible-lg">
-                    <hr><h5><a href="/about/">ABOUT ME</a></h5>
-                    <div class="short-about">
-
-                        
-                            <img src="/img/spencer.jpg" />
-                        
-
-                        
-                            <p>Goals determine what you going to be!</p>
-                        
-
-                        <!-- SNS Link -->
-                        <ul class="list-inline">
-                            
-                            
-                            
-                                <li>
-                                    <a target="_blank" href="https://www.zhihu.com/people/xiao-song-42-66">
-                                        <span class="fa-stack fa-lg">
-                                            <i class="fa fa-circle fa-stack-2x"></i>
-                                            <i class="fa  fa-stack-1x fa-inverse">知</i>
-                                        </span>
-                                    </a>
-                                </li>
-                            
-
-                            
-
-                            
-
-                            
-                                <li>
-                                    <a target="_blank"  href="https://github.com/smilexie">
-                                        <span class="fa-stack fa-lg">
-                                            <i class="fa fa-circle fa-stack-2x"></i>
-                                            <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                            
-                            
-                            
-                            
-                        </ul>
-                    </div>
-                </section>
-                
                 <!-- Friends Blog -->
                 
                 <hr>
@@ -398,9 +385,66 @@ SDN：
                 </ul>
                 
             </div>
-        
+
+        </div>
     </div>
-</div>
+</article>
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "/";
+    var disqus_identifier = "http://47.114.76.212/2020/11/05/three-handshake/";
+    var disqus_url = "http://47.114.76.212/2020/11/05/three-handshake/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
 
 
     <!-- Footer -->
@@ -546,6 +590,50 @@ SDN：
 
 
 <!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
 
 
 

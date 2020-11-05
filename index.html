@@ -183,6 +183,57 @@
 
 <div class="post-preview">
 
+    <a href="/2020/11/05/three-handshake/">
+        <h2 class="post-title">
+            为什么TCP是三次握手？而不是两次或四次？
+        </h2>
+        <h3 class="post-subtitle">
+            为什么TCP是三次握手？而不是两次或四次？
+        </h3>
+        <div class="post-content-preview">
+            为什么TCP是三次握手？而不是两次或四次？
+TCP连接建立的条件我们这里从TCP连接建立的前提入手。TCP连接建立的前提，是通信的双方都要知道本方和对方的发送和接收功能，都是正常的。也就是在TCP连接建立之前，有以下八个待确认项。
+
+
+
+
+服务端发送
+服务端接收
+客户端发送
+客户端接收
+
+
+
+
+服务端
+○
+○
+○
+○
+
+
+客户端
+○
+○
+○
+○
+
+
+
+图例：○：待确认，√：已确认
+三次握手第......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Spencer on
+        2020-11-05
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2020/10/18/hello-world/">
         <h2 class="post-title">
             Hello World!
@@ -418,38 +469,6 @@ Ing......
 </div>
 <hr>
 
-<div class="post-preview">
-
-    <a href="/2018/08/20/sdn-flow-id/">
-        <h2 class="post-title">
-            SDN环境下的网络流量识别
-        </h2>
-        <h3 class="post-subtitle">
-            基于神经网络与Openflow
-        </h3>
-        <div class="post-content-preview">
-            近来作成了一篇论文，发表于IHMSC 2018。把神经网络知识应用到网络流量识别中。
-论文主旨这篇论文并没有高深的理论研究，可以说是一篇纯应用性质的论文。把SDN与神经网络结合起来，去实现一个网络流量分类系统。SDN与神经网络可以说是一对神仙CP。
-SDN：
-
-全局性的网络抽象，很方便地收集大量流量特征
-在服务器端可以提供快速的算力支持
-网络可编程
-
-神经网络：
-
-需要大量的数据以供训练
-需......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Spencer on
-        2018-08-20
-    </p>
-
-</div>
-<hr>
-
 
 
 <!-- Pager -->
@@ -497,6 +516,14 @@ SDN：
                             
                         
                             
+                            <a href="/tags/#爬虫" title="爬虫" rel="1">爬虫</a>
+                            
+                        
+                            
+                            <a href="/tags/#日记" title="日记" rel="3">日记</a>
+                            
+                        
+                            
                             <a href="/tags/#Linux" title="Linux" rel="2">Linux</a>
                             
                         
@@ -505,15 +532,19 @@ SDN：
                             
                         
                             
-                            <a href="/tags/#日记" title="日记" rel="3">日记</a>
+                            <a href="/tags/#三次握手" title="三次握手" rel="1">三次握手</a>
+                            
+                        
+                            
+                            <a href="/tags/#TCP" title="TCP" rel="1">TCP</a>
+                            
+                        
+                            
+                            <a href="/tags/#Cache" title="Cache" rel="1">Cache</a>
                             
                         
                             
                             <a href="/tags/#程序人生" title="程序人生" rel="1">程序人生</a>
-                            
-                        
-                            
-                            <a href="/tags/#爬虫" title="爬虫" rel="1">爬虫</a>
                             
                         
                             
@@ -534,10 +565,6 @@ SDN：
                         
                             
                             <a href="/tags/#流量识别" title="流量识别" rel="1">流量识别</a>
-                            
-                        
-                            
-                            <a href="/tags/#Cache" title="Cache" rel="1">Cache</a>
                             
                         
                     </div>
