@@ -227,10 +227,10 @@
 <li>Private_Clean：未改写的私有页面页面 </li>
 <li>Private_Dirty：已改写的私有页面页面</li>
 </ul>
-<p>其中：<br>private = private_clean + private_dirty： 这个数据一般能够比较准确反映一个进程内部占用的内存，在内存优化的时候使用这个作为参考值比较合理，进程的物理内存占用就是smaps中所有的private的相加（链接的动态库的也要统计进去）。</p>
+<p>其中：<br>Pss这个数据一般能够比较准确反映一个进程内部占用的内存，在内存优化的时候使用这个作为参考值比较合理，进程的物理内存占用就是smaps中所有的Pss的相加（链接的动态库的也要统计进去）。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li>/proc/[pid]/status中，VmSize 因包含重复统计和未实际使用的内存，存在夸大的情况。VmHWM / VmRss 是相对理想的内存评估依据。</li>
-<li>想要得到确定的内存使用量，将/proc/[pid]/smap中的所有Private_Clean和Private_Dirty累加起来，是很好的解决方案。</li>
+<li>想要得到确定的内存使用量，将/proc/[pid]/smap中的所有Pss累加起来，是很好的解决方案。</li>
 </ul>
 
 
