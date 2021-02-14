@@ -13,11 +13,11 @@
 
     <title>
         
-          为什么TCP是三次握手？而不是两次或四次？ - 小耸的博客 | Spencer&#39;s Blog
+          强烈反对将&quot;.&quot;加入PATH环境变量中，为什么？ - 小耸的博客 | Spencer&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="http://47.114.76.212/2020/11/05/three-handshake/">
+    <link rel="canonical" href="http://47.114.76.212/2021/02/14/dot-append-to-path/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -155,7 +155,7 @@
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
-        background-image: url('post-bg-unix-linux.jpg')
+        background-image: url('post-bg-hacker.jpg')
     }
 </style>
 <header class="intro-header" >
@@ -165,16 +165,16 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                          <a class="tag" href="/tags/#三次握手" title="三次握手">三次握手</a>
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
-                          <a class="tag" href="/tags/#TCP" title="TCP">TCP</a>
+                          <a class="tag" href="/tags/#安全漏洞" title="安全漏洞">安全漏洞</a>
                         
                     </div>
-                    <h1>为什么TCP是三次握手？而不是两次或四次？</h1>
-                    <h2 class="subheading">为什么TCP是三次握手？而不是两次或四次？</h2>
+                    <h1>强烈反对将&quot;.&quot;加入PATH环境变量中，为什么？</h1>
+                    <h2 class="subheading">从系统安全的角度</h2>
                     <span class="meta">
                         Posted by Spencer on
-                        2020-11-05
+                        2021-02-14
                     </span>
                 </div>
             </div>
@@ -193,121 +193,22 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>为什么TCP是三次握手？而不是两次或四次？</p>
-<h2 id="TCP连接建立的条件"><a href="#TCP连接建立的条件" class="headerlink" title="TCP连接建立的条件"></a>TCP连接建立的条件</h2><p>我们这里从TCP连接建立的前提入手。TCP连接建立的前提，是通信的双方都要知道本方和对方的发送和接收功能，都是正常的。也就是在TCP连接建立之前，有以下八个待确认项。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>服务端发送</th>
-<th>服务端接收</th>
-<th>客户端发送</th>
-<th>客户端接收</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>服务端</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-</tr>
-<tr>
-<td>客户端</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-</tr>
-</tbody>
-</table>
-<p>图例：○：待确认，√：已确认</p>
-<h2 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h2><h3 id="第一次握手"><a href="#第一次握手" class="headerlink" title="第一次握手"></a>第一次握手</h3><p>客户端向服务端发送连接请求报文段。该报文段的头部中SYN=1，ACK=0，seq=x。<br>服务端接收到报文后，可以确认客户端的发送功能，服务端的接收功能，都是正常的。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>服务端发送</th>
-<th>服务端接收</th>
-<th>客户端发送</th>
-<th>客户端接收</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>服务端</td>
-<td>○</td>
-<td>√</td>
-<td>√</td>
-<td>○</td>
-</tr>
-<tr>
-<td>客户端</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-<td>○</td>
-</tr>
-</tbody>
-</table>
-<h3 id="第二次握手"><a href="#第二次握手" class="headerlink" title="第二次握手"></a>第二次握手</h3><p>服务端收到连接请求报文段后，如果同意连接，则会发送一个应答：SYN=1，ACK=1，seq=y，ack=x+1。<br>客户端接收到第二次握手报文后，可以确认服务端的发送功能，客户端的接收功能是正常的。不过，此时服务端并不知道自己的发送功能，客户端的接收功能是否正常。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>服务端发送</th>
-<th>服务端接收</th>
-<th>客户端发送</th>
-<th>客户端接收</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>服务端</td>
-<td>○</td>
-<td>√</td>
-<td>√</td>
-<td>○</td>
-</tr>
-<tr>
-<td>客户端</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-</tr>
-</tbody>
-</table>
-<h3 id="第三次握手"><a href="#第三次握手" class="headerlink" title="第三次握手"></a>第三次握手</h3><p>当客户端收到连接同意的应答后，还要向服务端发送一个确认报文段，表示：服务端发来的连接同意应答已经成功收到。该报文段的头部为：ACK=1，seq=x+1，ack=y+1<br>此时，服务端就可以确认自己的发送功能，客户端的接收功能是正常的。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>服务端发送</th>
-<th>服务端接收</th>
-<th>客户端发送</th>
-<th>客户端接收</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>服务端</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-</tr>
-<tr>
-<td>客户端</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-</tr>
-</tbody>
-</table>
-<p>至此，八个确认项都确认完成。服务端和客户端就可以开始愉快地通信了。</p>
+                <p>Linux下常用的工具如ping，objdump，pwd等，如果需要使用，无论当前处于哪个目录，只需直接输入程序名即可，例如“ping 1.1.1.1”；而自己编写的”hello world”程序，必需加上”./“的前缀，例如：“./hello.elf”。这是为什么？</p>
+<p>直接原因是，Linux系统是在PATH环境变量指定的路径中查找程序的。而ping，objdump，pwd等，都存放于/sbin/，/bin/，/usr/bin等目录，这些目录默认就在PATH环境变量中。</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo $PATH</span><br><span class="line"><span class="regexp">/home/</span>spencer<span class="regexp">/.local/</span><span class="string">bin:</span><span class="regexp">/usr/</span>local<span class="regexp">/sbin:/</span>usr<span class="regexp">/local/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">sbin:</span><span class="regexp">/usr/</span><span class="string">bin:</span><span class="regexp">/sbin:/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">games:</span><span class="regexp">/usr/</span>local<span class="regexp">/games:/</span>snap/bin</span><br></pre></td></tr></table></figure>
+<p>而在其它目录下的程序，就需要执行者手动指定程序路径，于是就有了上文所说的“./”前缀，这就是为了明确指定目录。</p>
+<h3 id="“聪明的”小技巧？"><a href="#“聪明的”小技巧？" class="headerlink" title="“聪明的”小技巧？"></a>“聪明的”小技巧？</h3><p>为了不输入“./”，我们何不把当前目录”.”加入PATH变量？这样执行当前目录下的程序，就不需要输入”./“了。<br>我们先试试可不可行。</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">spencer<span class="meta">@ubuntu</span>:~$ ls -l hello.sh </span><br><span class="line">-rwxrwxr-x <span class="number">1</span> spencer spencer <span class="number">20</span> Feb <span class="number">14</span> <span class="number">20</span>:<span class="number">24</span> hello.sh</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ hello.sh</span><br><span class="line">hello.<span class="string">sh:</span> command not found</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ export PATH=.:$PATH</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ echo $PATH</span><br><span class="line">.:<span class="regexp">/home/</span>spencer<span class="regexp">/.local/</span><span class="string">bin:</span><span class="regexp">/usr/</span>local<span class="regexp">/sbin:/</span>usr<span class="regexp">/local/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">sbin:</span><span class="regexp">/usr/</span><span class="string">bin:</span><span class="regexp">/sbin:/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">games:</span><span class="regexp">/usr/</span>local<span class="regexp">/games:/</span>snap/bin</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ hello.sh </span><br><span class="line">hello world</span><br></pre></td></tr></table></figure>
+<p>在~目录下放了一个小程序hello.sh，直接输入hello.sh会提示错误，而把”.”加入PATH之后，输入hello.sh可以正常运行。</p>
+<p>这样看起来，这招似乎可行？</p>
+<h3 id="一个大漏洞"><a href="#一个大漏洞" class="headerlink" title="一个大漏洞"></a>一个大漏洞</h3><p>大家都知道，Linux给不同用户分配了不同的权限。/sbin/，/bin/等目录下的程序，通常只有root用户才有权限修改。</p>
+<p>如果把“.”加入PATH，会出现什么问题？</p>
+<p><strong>一个通用用户在当前目录中，创建一个与/sbin/，/bin/等目录下的同名程序，即可替代只有root帐户才有权限修改的程序的行为。从而实现越权。</strong></p>
+<p>举个极端点的例子：在当前目录下，创建一个程序叫”cd”，里面的脚本是：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rm</span> -rf <span class="variable">$1</span></span><br></pre></td></tr></table></figure>
+<p>那么，在当前目录下，”cd”这条命令的行为，就被一个普通用户替换掉了，变成了删除参数指定的目录。这显然是个巨大的漏洞。</p>
+<p>替换”cd”程序这种事，应该只有root才能做。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>不得不承认，Linux社区中集合了这个世界上最聪明的一群人。通过这样的设计，刻意的引导用户养成习惯，只有系统PATH的才能省略路径运行，自己目录下的就要指定路径。从而避免黑客通过在当前目录放置对应的同名程序从而让你主动运行了这些文件。</p>
 
 
                 <hr>
@@ -316,13 +217,9 @@
 
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2021/02/14/dot-append-to-path/" data-toggle="tooltip" data-placement="top" title="强烈反对将"."加入PATH环境变量中，为什么？">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2020/10/18/hello-world/" data-toggle="tooltip" data-placement="top" title="Hello World!">Next Post &rarr;</a>
+                            <a href="/2020/11/05/three-handshake/" data-toggle="tooltip" data-placement="top" title="为什么TCP是三次握手？而不是两次或四次？">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -369,9 +266,9 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#三次握手" title="三次握手">三次握手</a>
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
                         
-                          <a class="tag" href="/tags/#TCP" title="TCP">TCP</a>
+                          <a class="tag" href="/tags/#安全漏洞" title="安全漏洞">安全漏洞</a>
                         
                     </div>
                 </section>
@@ -401,8 +298,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "/";
-    var disqus_identifier = "http://47.114.76.212/2020/11/05/three-handshake/";
-    var disqus_url = "http://47.114.76.212/2020/11/05/three-handshake/";
+    var disqus_identifier = "http://47.114.76.212/2021/02/14/dot-append-to-path/";
+    var disqus_url = "http://47.114.76.212/2021/02/14/dot-append-to-path/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

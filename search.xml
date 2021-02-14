@@ -4,6 +4,27 @@
   
     
     <entry>
+      <title>强烈反对将&quot;.&quot;加入PATH环境变量中，为什么？</title>
+      <link href="/2021/02/14/dot-append-to-path/"/>
+      <url>/2021/02/14/dot-append-to-path/</url>
+      
+        <content type="html"><![CDATA[<p>Linux下常用的工具如ping，objdump，pwd等，如果需要使用，无论当前处于哪个目录，只需直接输入程序名即可，例如“ping 1.1.1.1”；而自己编写的”hello world”程序，必需加上”./“的前缀，例如：“./hello.elf”。这是为什么？</p><p>直接原因是，Linux系统是在PATH环境变量指定的路径中查找程序的。而ping，objdump，pwd等，都存放于/sbin/，/bin/，/usr/bin等目录，这些目录默认就在PATH环境变量中。</p><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo $PATH</span><br><span class="line"><span class="regexp">/home/</span>spencer<span class="regexp">/.local/</span><span class="string">bin:</span><span class="regexp">/usr/</span>local<span class="regexp">/sbin:/</span>usr<span class="regexp">/local/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">sbin:</span><span class="regexp">/usr/</span><span class="string">bin:</span><span class="regexp">/sbin:/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">games:</span><span class="regexp">/usr/</span>local<span class="regexp">/games:/</span>snap/bin</span><br></pre></td></tr></table></figure><p>而在其它目录下的程序，就需要执行者手动指定程序路径，于是就有了上文所说的“./”前缀，这就是为了明确指定目录。</p><h3 id="“聪明的”小技巧？"><a href="#“聪明的”小技巧？" class="headerlink" title="“聪明的”小技巧？"></a>“聪明的”小技巧？</h3><p>为了不输入“./”，我们何不把当前目录”.”加入PATH变量？这样执行当前目录下的程序，就不需要输入”./“了。<br>我们先试试可不可行。</p><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">spencer<span class="meta">@ubuntu</span>:~$ ls -l hello.sh </span><br><span class="line">-rwxrwxr-x <span class="number">1</span> spencer spencer <span class="number">20</span> Feb <span class="number">14</span> <span class="number">20</span>:<span class="number">24</span> hello.sh</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ hello.sh</span><br><span class="line">hello.<span class="string">sh:</span> command not found</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ export PATH=.:$PATH</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ echo $PATH</span><br><span class="line">.:<span class="regexp">/home/</span>spencer<span class="regexp">/.local/</span><span class="string">bin:</span><span class="regexp">/usr/</span>local<span class="regexp">/sbin:/</span>usr<span class="regexp">/local/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">sbin:</span><span class="regexp">/usr/</span><span class="string">bin:</span><span class="regexp">/sbin:/</span><span class="string">bin:</span><span class="regexp">/usr/</span><span class="string">games:</span><span class="regexp">/usr/</span>local<span class="regexp">/games:/</span>snap/bin</span><br><span class="line">spencer<span class="meta">@ubuntu</span>:~$ hello.sh </span><br><span class="line">hello world</span><br></pre></td></tr></table></figure><p>在~目录下放了一个小程序hello.sh，直接输入hello.sh会提示错误，而把”.”加入PATH之后，输入hello.sh可以正常运行。</p><p>这样看起来，这招似乎可行？</p><h3 id="一个大漏洞"><a href="#一个大漏洞" class="headerlink" title="一个大漏洞"></a>一个大漏洞</h3><p>大家都知道，Linux给不同用户分配了不同的权限。/sbin/，/bin/等目录下的程序，通常只有root用户才有权限修改。</p><p>如果把“.”加入PATH，会出现什么问题？</p><p><strong>一个通用用户在当前目录中，创建一个与/sbin/，/bin/等目录下的同名程序，即可替代只有root帐户才有权限修改的程序的行为。从而实现越权。</strong></p><p>举个极端点的例子：在当前目录下，创建一个程序叫”cd”，里面的脚本是：</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rm</span> -rf <span class="variable">$1</span></span><br></pre></td></tr></table></figure><p>那么，在当前目录下，”cd”这条命令的行为，就被一个普通用户替换掉了，变成了删除参数指定的目录。这显然是个巨大的漏洞。</p><p>替换”cd”程序这种事，应该只有root才能做。</p><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>不得不承认，Linux社区中集合了这个世界上最聪明的一群人。通过这样的设计，刻意的引导用户养成习惯，只有系统PATH的才能省略路径运行，自己目录下的就要指定路径。从而避免黑客通过在当前目录放置对应的同名程序从而让你主动运行了这些文件。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Linux </tag>
+            
+            <tag> 安全漏洞 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>为什么TCP是三次握手？而不是两次或四次？</title>
       <link href="/2020/11/05/three-handshake/"/>
       <url>/2020/11/05/three-handshake/</url>
