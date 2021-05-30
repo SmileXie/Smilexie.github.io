@@ -13,11 +13,11 @@
 
     <title>
         
-          Linux cache参数调优 - 小耸的博客 | Spencer&#39;s Blog
+          Rust所有权编译错误解析 - 小耸的博客 | Spencer&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="http://47.114.76.212/2020/04/25/vm-cache/">
+    <link rel="canonical" href="http://47.114.76.212/2021/05/30/rust-owner-compile/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -165,16 +165,18 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                          <a class="tag" href="/tags/#Rust" title="Rust">Rust</a>
                         
-                          <a class="tag" href="/tags/#Cache" title="Cache">Cache</a>
+                          <a class="tag" href="/tags/#Owner" title="Owner">Owner</a>
+                        
+                          <a class="tag" href="/tags/#Compiling" title="Compiling">Compiling</a>
                         
                     </div>
-                    <h1>Linux cache参数调优</h1>
-                    <h2 class="subheading">Linux cache参数调优</h2>
+                    <h1>Rust所有权编译错误解析</h1>
+                    <h2 class="subheading">Rust所有权编译错误解析</h2>
                     <span class="meta">
                         Posted by Spencer on
-                        2020-04-25
+                        2021-05-30
                     </span>
                 </div>
             </div>
@@ -193,26 +195,34 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>缓存机制（cache）是保证Linux环境下对硬盘/flash操作效率的有效方式。cache建立在内存中，它缓存了硬盘/flash的数据，当脏数据到达一定水限时，再异步地将数据刷入硬盘。这可以加速进程的文件系统访问操作。但是也有风险，当数据未写入硬盘前设备重启，存在数据丢失的风险。</p>
-<p>如果缓存相关参数设置得不好，对系统的运行反而会有不良的影响。如果cache过大，当需要把cache中的巨量数据刷入硬盘时，会让系统显得卡顿，甚至无法调度线程。</p>
-<p>Linux提供的接口，以支持修改cache容量。</p>
-<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><h3 id="cache中脏数据相关参数"><a href="#cache中脏数据相关参数" class="headerlink" title="cache中脏数据相关参数"></a>cache中脏数据相关参数</h3><p><code>sysctl -a | grep dirty</code>可以看到一组相关的内核参数</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ sysctl -a | grep dirty</span><br><span class="line">vm.dirty_background_bytes = 0</span><br><span class="line">vm.dirty_background_ratio = 5</span><br><span class="line">vm.dirty_bytes = 0</span><br><span class="line">vm.dirty_expire_centisecs = 600</span><br><span class="line">vm.dirty_ratio = 10</span><br><span class="line">vm.dirty_writeback_centisecs = 100</span><br></pre></td></tr></table></figure>
+                <h1 id="所有权"><a href="#所有权" class="headerlink" title="所有权"></a>所有权</h1><h5 id="Rust所有权三原则"><a href="#Rust所有权三原则" class="headerlink" title="Rust所有权三原则"></a>Rust所有权三原则</h5><ol>
+<li>Each value in Rust has a variable that’s called its owner. （Rust中每一个变量都有一个所有者。）</li>
+<li>There can only be one owner at a time.（在任一时刻，所有者有且仅有一个。）</li>
+<li>When the owner goes out of scope, the value will be dropped.（当所有者离开其作用域后，它所拥有的数据会被释放。）</li>
+</ol>
+<h4 id="所有权相关编译错误"><a href="#所有权相关编译错误" class="headerlink" title="所有权相关编译错误"></a>所有权相关编译错误</h4><h5 id="错误1"><a href="#错误1" class="headerlink" title="错误1"></a>错误1</h5><p>代码段1：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line"><span class="keyword">let</span> s2 = s1; </span><br><span class="line"><span class="built_in">println!</span>(<span class="string">"&#123;&#125;, world!"</span>, s1);</span><br></pre></td></tr></table></figure>
+<p>编译结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">   Compiling ownership v0.1.0 (file:///projects/ownership)</span><br><span class="line">error[E0382]: borrow of moved value: `s1`</span><br><span class="line"><span class="meta"> --&gt;</span> src/main.rs:5:28</span><br><span class="line">  |</span><br><span class="line">2 |     let s1 = String::from("hello");</span><br><span class="line">  |         -- move occurs because `s1` has type `String`, which does not implement the `Copy` trait</span><br><span class="line">3 |     let s2 = s1;</span><br><span class="line">  |              -- value moved here</span><br><span class="line">4 | </span><br><span class="line">5 |     println!("&#123;&#125;, world!", s1);</span><br><span class="line">  |                            ^^ value borrowed here after move</span><br><span class="line"></span><br><span class="line">error: aborting due to previous error</span><br><span class="line"></span><br><span class="line">For more information about this error, try `rustc --explain E0382`.</span><br><span class="line">error: could not compile `ownership`</span><br></pre></td></tr></table></figure>
+<p><strong>解析</strong>：String的所有权从s1转移到s2后，不能再使用s1访问数据。否则违反原则2。</p>
+<p>然而，对于下面这段代码，似乎产生了与代码段1矛盾的编译结果。</p>
+<p>代码段2：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> u1:<span class="built_in">u32</span> = <span class="number">20</span>;</span><br><span class="line">    <span class="keyword">let</span> u2 = u1; </span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;, world!"</span>, u1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果按代码段1的逻辑，u2=u1时，数字20的所有权传移给u2，u1应该不能再被访问。然而这段代码可以被正确地编译，这是为什么呢？</p>
+<p>原因是：针对u32类型的数据，rust赋予其Copy特性（trait）。凡是拥有Copy trait的数据类型，“=”都表示数据的复制而非传有权的转移。因此在u2=u1之后，u2和u1里，都保存有20这一整型数据。</p>
+<p>以下数据类型有Copy trait：</p>
 <ul>
-<li><strong>vm.dirty_background_bytes</strong>：脏数据量达到此门限后，系统会开始把脏数据写入外存。此时脏数据可能仍然继续写入内存。</li>
-<li><strong>vm.dirty_ratio</strong>：脏数据量达到此门限后，系统会阻塞式地将脏数据写入外存，新的数据将被阻塞，无法写入cache。</li>
-<li><strong>vm.dirty_background_bytes</strong>与<strong>vm.dirty_bytes</strong>：与vm.dirty_background_bytes/vm.dirty_ratio类似，差异仅仅是门限的计数单位，不是内存总量的百分比，而是bytes。注意_ratio与_bytes，有且仅有一个组能生效，如果一组被设置了非0值，另一组就应该被置0。</li>
-<li><strong>vm.dirty_writeback_centisecs</strong>：表示间隔多长时间，系统去检查一次cache中的数据量是否超过门限值，以百分之一秒为单位。</li>
-<li><strong>vm.dirty_expire_centisecs</strong>：表示数据在cache中允许被缓存多长时间。以百分之一秒为单位。</li>
+<li>所有整型：u32 u64等</li>
+<li>布尔型</li>
+<li>所有浮点型：f32 f64等</li>
+<li>字符型：char</li>
+<li>元组（Tuples）：如果组成元组的每个成员都有Copy trait，那么此元组也有Copy trait。</li>
 </ul>
-<h3 id="drop-cache相关参数与操作"><a href="#drop-cache相关参数与操作" class="headerlink" title="drop cache相关参数与操作"></a>drop cache相关参数与操作</h3><p>使用top命令，可以查看当前系统中cache的大小。<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># top</span></span><br><span class="line"><span class="string">top</span> <span class="bullet">-</span> <span class="number">16</span><span class="string">:50:19</span> <span class="string">up</span> <span class="number">4</span> <span class="string">days,</span>  <span class="number">7</span><span class="string">:00,</span> <span class="number">22</span> <span class="string">users,</span>  <span class="attr">load average:</span> <span class="number">25.06</span><span class="string">,</span> <span class="number">24.12</span><span class="string">,</span> <span class="number">23.14</span></span><br><span class="line"><span class="attr">Tasks:</span> <span class="number">493</span> <span class="string">total,</span>   <span class="number">7</span> <span class="string">running,</span> <span class="number">486</span> <span class="string">sleeping,</span>   <span class="number">0</span> <span class="string">stopped,</span>   <span class="number">0</span> <span class="string">zombie</span></span><br><span class="line"><span class="string">%Cpu(s):</span> <span class="number">37.1</span> <span class="string">us,</span> <span class="number">18.9</span> <span class="string">sy,</span>  <span class="number">0.0</span> <span class="string">ni,</span> <span class="number">42.3</span> <span class="string">id,</span>  <span class="number">0.0</span> <span class="string">wa,</span>  <span class="number">0.0</span> <span class="string">hi,</span>  <span class="number">1.7</span> <span class="string">si,</span>  <span class="number">0.0</span> <span class="string">st</span></span><br><span class="line"><span class="attr">KiB Mem :</span> <span class="number">65622752</span> <span class="string">total,</span> <span class="number">30293032</span> <span class="string">free,</span> <span class="number">29879144</span> <span class="string">used,</span>  <span class="number">5450576</span> <span class="string">buff/cache</span></span><br><span class="line"><span class="attr">KiB Swap:</span>        <span class="number">0</span> <span class="string">total,</span>        <span class="number">0</span> <span class="string">free,</span>        <span class="number">0</span> <span class="string">used.</span> <span class="number">31415264</span> <span class="string">avail</span> <span class="string">Mem</span></span><br></pre></td></tr></table></figure></p>
-<p>使用<code>echo 3 &gt; /proc/sys/vm/drop_caches</code>可以手动清理cache。但这并不是一个好主意。cache有它存在的必要。假设一台网页服务器，在drop_cache之后，所有用户访问的数据都将从硬盘中读出，这会显著地影响用户访问网站的体验。</p>
-<p>如果发现cache确实过大，我们应该尽量使用系统提供的参数来调优，不采用主动drop_cache的方式。</p>
-<ul>
-<li><strong>vm.vfs_cache_pressure</strong>：表示系统清理cache的“努力程度”。默认值为100。越大则表示内核会越频繁地回收cache。</li>
-</ul>
-<h2 id="参数建议"><a href="#参数建议" class="headerlink" title="参数建议"></a>参数建议</h2><p>在一台内存为64G，硬盘读写量长期保持在500KB/s的服务器上，在未调优前，经常发生因系统回收cache导致的系统挂起。因此，我们考虑修改参数，提高flush dirty和cache回收的频率，避免脏数据与cache累积过多，一次性回收导致的系统挂起无响应。</p>
-<p>以下参数作参考：<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">vm.dirty_ratio</span>=<span class="number">10</span></span><br><span class="line"><span class="attr">vm.dirty_background_ratio</span>=<span class="number">5</span></span><br><span class="line"><span class="attr">vm.dirty_expire_centisecs</span>=<span class="number">3000</span></span><br><span class="line"><span class="attr">vm.dirty_writeback_centisecs</span>=<span class="number">500</span></span><br><span class="line"><span class="attr">vm.min_free_kbytes</span>=<span class="number">1000000</span></span><br><span class="line"><span class="attr">vm.vfs_cache_pressure</span>=<span class="number">500</span></span><br></pre></td></tr></table></figure></p>
+<h5 id="错误2"><a href="#错误2" class="headerlink" title="错误2"></a>错误2</h5><p>代码段3</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> x = <span class="number">5</span>;</span><br><span class="line">    print_int(x);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, x);</span><br><span class="line">    <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    print_string(s);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, s);</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">print_string</span></span>(some_string: <span class="built_in">String</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, some_string);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">print_int</span></span>(some_integer: <span class="built_in">i32</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, some_integer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> cargo build</span><br><span class="line">   Compiling hello v0.1.0 (/home/spencer/share/my_code/rust_prj/hello)</span><br><span class="line">error[E0382]: borrow of moved value: `s`</span><br><span class="line"><span class="meta"> --&gt;</span> src/main.rs:9:20</span><br><span class="line">  |</span><br><span class="line">7 |     let s = String::from("hello");</span><br><span class="line">  |         - move occurs because `s` has type `String`, which does not implement the `Copy` trait</span><br><span class="line">8 |     print_string(s);</span><br><span class="line">  |                  - value moved here</span><br><span class="line">9 |     println!("&#123;&#125;", s);</span><br><span class="line">  |                    ^ value borrowed here after move</span><br><span class="line"></span><br><span class="line">error: aborting due to previous error</span><br></pre></td></tr></table></figure>
+<p><strong>解析</strong>：函数的传参赋值，视作与“=”有相同的作用。即：变量<code>s</code>被传入<code>print_string</code>函数后，它的所有仅传移给<code>some_string</code>，又因为原则三：“当所有者离开其作用域后，它所拥有的数据会被释放。”<code>some_string</code>所拥有的字符串数据，在离开<code>print_string</code>之后，即被释放。因此第9行的<code>println!(&quot;{}&quot;, s);</code>对<code>s</code>的访问编译失败。<br>而对整型数据的传参，则不存在类似的问题。因为整型数据有Copy trait，传参意味着数据的复制，而不是所有权的转移。因此第4行<code>println!(&quot;{}&quot;, x);</code>并没有编译失败。</p>
 
 
                 <hr>
@@ -221,13 +231,9 @@
 
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2020/05/04/mosquito/" data-toggle="tooltip" data-placement="top" title="打蚊子与找bug">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2020/03/08/docker-swarm-network/" data-toggle="tooltip" data-placement="top" title="docker swarm（三） overlay与docker_gwbridge网络详解">Next Post &rarr;</a>
+                            <a href="/2021/02/14/dot-append-to-path/" data-toggle="tooltip" data-placement="top" title="强烈反对将"."加入PATH环境变量中，为什么？">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -274,9 +280,11 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                          <a class="tag" href="/tags/#Rust" title="Rust">Rust</a>
                         
-                          <a class="tag" href="/tags/#Cache" title="Cache">Cache</a>
+                          <a class="tag" href="/tags/#Owner" title="Owner">Owner</a>
+                        
+                          <a class="tag" href="/tags/#Compiling" title="Compiling">Compiling</a>
                         
                     </div>
                 </section>
@@ -308,8 +316,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "/";
-    var disqus_identifier = "http://47.114.76.212/2020/04/25/vm-cache/";
-    var disqus_url = "http://47.114.76.212/2020/04/25/vm-cache/";
+    var disqus_identifier = "http://47.114.76.212/2021/05/30/rust-owner-compile/";
+    var disqus_url = "http://47.114.76.212/2021/05/30/rust-owner-compile/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
