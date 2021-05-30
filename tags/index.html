@@ -90,6 +90,13 @@
 
                         
                         <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -98,13 +105,6 @@
                         
                         <li>
                             <a href="/archives/">Archives</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
-                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -176,15 +176,23 @@
                 
                     <a href="#容器" title="容器" rel="3">容器</a>
                 
-                    <a href="#Linux" title="Linux" rel="3">Linux</a>
-                
-                    <a href="#安全漏洞" title="安全漏洞" rel="1">安全漏洞</a>
-                
                     <a href="#爬虫" title="爬虫" rel="1">爬虫</a>
                 
                     <a href="#日记" title="日记" rel="3">日记</a>
                 
                     <a href="#程序人生" title="程序人生" rel="1">程序人生</a>
+                
+                    <a href="#Linux" title="Linux" rel="3">Linux</a>
+                
+                    <a href="#安全漏洞" title="安全漏洞" rel="1">安全漏洞</a>
+                
+                    <a href="#三次握手" title="三次握手" rel="1">三次握手</a>
+                
+                    <a href="#TCP" title="TCP" rel="1">TCP</a>
+                
+                    <a href="#Cache" title="Cache" rel="1">Cache</a>
+                
+                    <a href="#内存" title="内存" rel="1">内存</a>
                 
                     <a href="#神经网络" title="神经网络" rel="1">神经网络</a>
                 
@@ -195,14 +203,6 @@
                     <a href="#SDN" title="SDN" rel="1">SDN</a>
                 
                     <a href="#流量识别" title="流量识别" rel="1">流量识别</a>
-                
-                    <a href="#三次握手" title="三次握手" rel="1">三次握手</a>
-                
-                    <a href="#TCP" title="TCP" rel="1">TCP</a>
-                
-                    <a href="#Cache" title="Cache" rel="1">Cache</a>
-                
-                    <a href="#内存" title="内存" rel="1">内存</a>
                 
             </div>
 
@@ -219,10 +219,14 @@
                   <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
                   </li> -->
                  <div class="post-preview">
-                     <a href="/2020/01/24/docker-hello/">
+                     <a href="/2020/02/06/docker-swarm-hello/">
                         <h2 class="post-title">
-                            用docker打包一个demo image
+                            docker swarm（一） 入门
                         </h2>
+                        
+                            <h3 class="post-subtitle">
+                                搭建一个简单的swarm集群
+                            </h3>
                         
                     </a>
                     <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
@@ -234,14 +238,10 @@
                   <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
                   </li> -->
                  <div class="post-preview">
-                     <a href="/2020/02/06/docker-swarm-hello/">
+                     <a href="/2020/01/24/docker-hello/">
                         <h2 class="post-title">
-                            docker swarm（一） 入门
+                            用docker打包一个demo image
                         </h2>
-                        
-                            <h3 class="post-subtitle">
-                                搭建一个简单的swarm集群
-                            </h3>
                         
                     </a>
                     <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
@@ -393,6 +393,118 @@
             </div>
             
             <div class="one-tag-list">
+                <span class="fa fa-tag listing-seperator" id="爬虫">
+                    <span class="tag-text">爬虫</span>
+                </span>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2016/08/21/fz-res/">
+                        <h2 class="post-title">
+                            从数据角度解析福州美食
+                        </h2>
+                        
+                            <h3 class="post-subtitle">
+                                从数据角度解析福州美食
+                            </h3>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+            </div>
+            
+            <div class="one-tag-list">
+                <span class="fa fa-tag listing-seperator" id="日记">
+                    <span class="tag-text">日记</span>
+                </span>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2020/10/18/hello-world/">
+                        <h2 class="post-title">
+                            Hello World!
+                        </h2>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2020/05/04/mosquito/">
+                        <h2 class="post-title">
+                            打蚊子与找bug
+                        </h2>
+                        
+                            <h3 class="post-subtitle">
+                                真是一模一样
+                            </h3>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2020/02/14/v-day/">
+                        <h2 class="post-title">
+                            最长情的告白
+                        </h2>
+                        
+                            <h3 class="post-subtitle">
+                                to Q
+                            </h3>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+            </div>
+            
+            <div class="one-tag-list">
+                <span class="fa fa-tag listing-seperator" id="程序人生">
+                    <span class="tag-text">程序人生</span>
+                </span>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2020/05/04/mosquito/">
+                        <h2 class="post-title">
+                            打蚊子与找bug
+                        </h2>
+                        
+                            <h3 class="post-subtitle">
+                                真是一模一样
+                            </h3>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+            </div>
+            
+            <div class="one-tag-list">
                 <span class="fa fa-tag listing-seperator" id="Linux">
                     <span class="tag-text">Linux</span>
                 </span>
@@ -483,8 +595,8 @@
             </div>
             
             <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="爬虫">
-                    <span class="tag-text">爬虫</span>
+                <span class="fa fa-tag listing-seperator" id="三次握手">
+                    <span class="tag-text">三次握手</span>
                 </span>
                 
                   <!-- <li class="listing-item">
@@ -492,13 +604,13 @@
                   <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
                   </li> -->
                  <div class="post-preview">
-                     <a href="/2016/08/21/fz-res/">
+                     <a href="/2020/11/05/three-handshake/">
                         <h2 class="post-title">
-                            从数据角度解析福州美食
+                            为什么TCP是三次握手？而不是两次或四次？
                         </h2>
                         
                             <h3 class="post-subtitle">
-                                从数据角度解析福州美食
+                                为什么TCP是三次握手？而不是两次或四次？
                             </h3>
                         
                     </a>
@@ -509,8 +621,8 @@
             </div>
             
             <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="日记">
-                    <span class="tag-text">日记</span>
+                <span class="fa fa-tag listing-seperator" id="TCP">
+                    <span class="tag-text">TCP</span>
                 </span>
                 
                   <!-- <li class="listing-item">
@@ -518,48 +630,14 @@
                   <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
                   </li> -->
                  <div class="post-preview">
-                     <a href="/2020/05/04/mosquito/">
+                     <a href="/2020/11/05/three-handshake/">
                         <h2 class="post-title">
-                            打蚊子与找bug
+                            为什么TCP是三次握手？而不是两次或四次？
                         </h2>
                         
                             <h3 class="post-subtitle">
-                                真是一模一样
+                                为什么TCP是三次握手？而不是两次或四次？
                             </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/02/14/v-day/">
-                        <h2 class="post-title">
-                            最长情的告白
-                        </h2>
-                        
-                            <h3 class="post-subtitle">
-                                to Q
-                            </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/10/18/hello-world/">
-                        <h2 class="post-title">
-                            Hello World!
-                        </h2>
                         
                     </a>
                     <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
@@ -569,8 +647,8 @@
             </div>
             
             <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="程序人生">
-                    <span class="tag-text">程序人生</span>
+                <span class="fa fa-tag listing-seperator" id="Cache">
+                    <span class="tag-text">Cache</span>
                 </span>
                 
                   <!-- <li class="listing-item">
@@ -578,13 +656,39 @@
                   <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
                   </li> -->
                  <div class="post-preview">
-                     <a href="/2020/05/04/mosquito/">
+                     <a href="/2020/04/25/vm-cache/">
                         <h2 class="post-title">
-                            打蚊子与找bug
+                            Linux cache参数调优
                         </h2>
                         
                             <h3 class="post-subtitle">
-                                真是一模一样
+                                Linux cache参数调优
+                            </h3>
+                        
+                    </a>
+                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+                </div>
+                <hr>
+                
+            </div>
+            
+            <div class="one-tag-list">
+                <span class="fa fa-tag listing-seperator" id="内存">
+                    <span class="tag-text">内存</span>
+                </span>
+                
+                  <!-- <li class="listing-item">
+                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  </li> -->
+                 <div class="post-preview">
+                     <a href="/2020/05/17/mem-analysis/">
+                        <h2 class="post-title">
+                            如何评估一个进程占用的内存空间
+                        </h2>
+                        
+                            <h3 class="post-subtitle">
+                                基于/proc/[pid]/smap和/proc/[pid]/status
                             </h3>
                         
                     </a>
@@ -715,110 +819,6 @@
                         
                             <h3 class="post-subtitle">
                                 基于神经网络与Openflow
-                            </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-            </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="三次握手">
-                    <span class="tag-text">三次握手</span>
-                </span>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/11/05/three-handshake/">
-                        <h2 class="post-title">
-                            为什么TCP是三次握手？而不是两次或四次？
-                        </h2>
-                        
-                            <h3 class="post-subtitle">
-                                为什么TCP是三次握手？而不是两次或四次？
-                            </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-            </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="TCP">
-                    <span class="tag-text">TCP</span>
-                </span>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/11/05/three-handshake/">
-                        <h2 class="post-title">
-                            为什么TCP是三次握手？而不是两次或四次？
-                        </h2>
-                        
-                            <h3 class="post-subtitle">
-                                为什么TCP是三次握手？而不是两次或四次？
-                            </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-            </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="Cache">
-                    <span class="tag-text">Cache</span>
-                </span>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/04/25/vm-cache/">
-                        <h2 class="post-title">
-                            Linux cache参数调优
-                        </h2>
-                        
-                            <h3 class="post-subtitle">
-                                Linux cache参数调优
-                            </h3>
-                        
-                    </a>
-                    <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
-                </div>
-                <hr>
-                
-            </div>
-            
-            <div class="one-tag-list">
-                <span class="fa fa-tag listing-seperator" id="内存">
-                    <span class="tag-text">内存</span>
-                </span>
-                
-                  <!-- <li class="listing-item">
-                  <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
-                  <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-                  </li> -->
-                 <div class="post-preview">
-                     <a href="/2020/05/17/mem-analysis/">
-                        <h2 class="post-title">
-                            如何评估一个进程占用的内存空间
-                        </h2>
-                        
-                            <h3 class="post-subtitle">
-                                基于/proc/[pid]/smap和/proc/[pid]/status
                             </h3>
                         
                     </a>
