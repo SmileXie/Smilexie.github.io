@@ -13,11 +13,11 @@
 
     <title>
         
-          docker swarm（二） Ingress Routing Mesh的理解与应用 - 小耸的博客 | Spencer&#39;s Blog
+          Rust引用、可变引用及其编译错误解析 - 小耸的博客 | Spencer&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="http://47.114.76.212/2020/02/11/docker-swarm-inggress-routing-mesh/">
+    <link rel="canonical" href="http://47.114.76.212/2021/06/14/rust-ref/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -155,7 +155,7 @@
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
-        background-image: url('post-bg-ioses.jpg')
+        background-image: url('post-bg-hacker.jpg')
     }
 </style>
 <header class="intro-header" >
@@ -165,18 +165,16 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                          <a class="tag" href="/tags/#rust" title="rust">rust</a>
                         
-                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
-                        
-                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                          <a class="tag" href="/tags/#引用" title="引用">引用</a>
                         
                     </div>
-                    <h1>docker swarm（二） Ingress Routing Mesh的理解与应用</h1>
+                    <h1>Rust引用、可变引用及其编译错误解析</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
                         Posted by Spencer on
-                        2020-02-11
+                        2021-06-14
                     </span>
                 </div>
             </div>
@@ -195,32 +193,35 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Routing Mesh是docker swarm提供的确保service在多节点网络上可用的集群网络机制。其分为两类：</p>
+                <h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><p><a href="http://xiaosong.fun/2021/05/30/rust-owner-compile/" target="_blank" rel="noopener">上节</a>中提到，Rust中，无Copy Trait的数据类型的函数传参，等效于所有权的转移。因此当函数退出时，接收所有权的变量作用域结束，数据就被销毁。那么，是否有办法让函数传参不发生所有权的转移？</p>
+<p>有的！</p>
+<p>Rust提供了被称为“引用”的机制。如下例：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> s1 = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    <span class="keyword">let</span> len = calculate_length(&amp;s1);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"The length of '&#123;&#125;' is &#123;&#125;."</span>, s1, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">calculate_length</span></span>(s: &amp;<span class="built_in">String</span>) -&gt; <span class="built_in">usize</span> &#123;</span><br><span class="line">    s.len()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上程序可以被正常运行，变量<code>s</code>不会在离开自己的作用域时销毁其指向的数据，因为它并不拥有数据的所有权。</p>
+<h4 id="引用的常见编译错误"><a href="#引用的常见编译错误" class="headerlink" title="引用的常见编译错误"></a>引用的常见编译错误</h4><h5 id="错误1"><a href="#错误1" class="headerlink" title="错误1"></a>错误1</h5><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    append_string(&amp;s);</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">append_string</span></span>(s: &amp;<span class="built_in">String</span>) &#123;</span><br><span class="line">    s.push_str(<span class="string">" world"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cargo build</span></span><br><span class="line">   Compiling hello v0.1.0 (/home/spencer/share/my_code/rust_prj/hello)</span><br><span class="line">error[E0596]: cannot borrow `*s` as mutable, as it is behind a `&amp;` reference</span><br><span class="line"><span class="meta">  --&gt;</span><span class="bash"> src/main.rs:14:5</span></span><br><span class="line">   |</span><br><span class="line">13 | fn append_string(s: &amp;String) &#123;</span><br><span class="line">   |                     ------- help: consider changing this to be a mutable reference: `&amp;mut String`</span><br><span class="line">14 |     s.push_str(" world");</span><br><span class="line">   |     ^ `s` is a `&amp;` reference, so the data it refers to cannot be borrowed as mutable</span><br></pre></td></tr></table></figure>
+<p><strong>解析</strong>：引用是默认是可变的，修改引用变量指向的数据是被禁止的。</p>
+<h3 id="可变引用"><a href="#可变引用" class="headerlink" title="可变引用"></a>可变引用</h3><h4 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h4><p>Rust允许我们使用<code>mut</code>将某个引用声明为“可变引用”</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    append_string(&amp;<span class="keyword">mut</span> s);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">append_string</span></span>(some_string: &amp;<span class="keyword">mut</span> <span class="built_in">String</span>) &#123;</span><br><span class="line">    some_string.push_str(<span class="string">", world"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上程序可以被正常执行，<code>append_string</code>函数的入参类型被指定为<code>&amp;mut String</code>，即可变引用的String类型。<code>append_string</code>中完成了对入参的修改。</p>
+<p>Rust以数据访问安全著称。那么它是如何在支持可变引用的情况下，仍然可以避免数据的竞争的？大家可以通过以下编译错误的例子体会一下。</p>
+<h4 id="可变引用常见的编译错误"><a href="#可变引用常见的编译错误" class="headerlink" title="可变引用常见的编译错误"></a>可变引用常见的编译错误</h4><h5 id="错误2"><a href="#错误2" class="headerlink" title="错误2"></a>错误2</h5><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    <span class="keyword">let</span> r1 = &amp;<span class="keyword">mut</span> s;</span><br><span class="line">    <span class="keyword">let</span> r2 = &amp;<span class="keyword">mut</span> s;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;, &#123;&#125;"</span>, r1, r2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译结果 ：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">   Compiling hello v0.1.0 (/home/spencer/share/my_code/rust_prj/hello)</span><br><span class="line">error[E0499]: cannot borrow `s` as mutable more than once at a time</span><br><span class="line"><span class="meta"> --&gt;</span><span class="bash"> src/main.rs:5:14</span></span><br><span class="line">  |</span><br><span class="line">4 |     let r1 = &amp;mut s;</span><br><span class="line">  |              ------ first mutable borrow occurs here</span><br><span class="line">5 |     let r2 = &amp;mut s;</span><br><span class="line">  |              ^^^^^^ second mutable borrow occurs here</span><br><span class="line">6 | </span><br><span class="line">7 |     println!("&#123;&#125;, &#123;&#125;", r1, r2);</span><br><span class="line">  |                        -- first borrow later used here</span><br></pre></td></tr></table></figure>
+<p><strong>解析</strong>：以上例子中，r1和r2都为s的可变引用，且在同一个作用域中。Rust编译不不允许这样的代码存在。因为<code>r1</code>和<code>r2</code>可以在同一个作用域操作同一份数据，会产生数据竞争。</p>
+<p>当我们用大括号将<code>r1</code>的作用域加以限制之后，<code>r1</code>和<code>r2</code>的作用域不再重叠，就可以编译通过了。如下：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> r1 = &amp;<span class="keyword">mut</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">let</span> r2 = &amp;<span class="keyword">mut</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="错误3"><a href="#错误3" class="headerlink" title="错误3"></a>错误3</h5><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> s = <span class="built_in">String</span>::from(<span class="string">"hello"</span>);</span><br><span class="line">    <span class="keyword">let</span> r1 = &amp;<span class="keyword">mut</span> s;</span><br><span class="line">    s.push_str(<span class="string">" world"</span>);</span><br><span class="line">    r1.push_str(<span class="string">" hello2"</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">"&#123;&#125;"</span>, s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译结果 ：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">error[E0499]: cannot borrow `s` as mutable more than once at a time</span><br><span class="line"><span class="meta"> --&gt;</span><span class="bash"> src/main.rs:4:5</span></span><br><span class="line">  |</span><br><span class="line">3 |     let r1 = &amp;mut s;</span><br><span class="line">  |              ------ first mutable borrow occurs here</span><br><span class="line">4 |     s.push_str(" world");</span><br><span class="line">  |     ^ second mutable borrow occurs here</span><br><span class="line">5 |     r1.push_str(" hello2");</span><br><span class="line">  |     -- first borrow later used here</span><br></pre></td></tr></table></figure>
+<p><strong>解析</strong>：与上一个错误类似，同样也出现了“second mutable borrow occurs here”的提示。而发生此错误的地方，是第4行使用原始变量<code>s</code>做了数据修改的操作。编译器将使用原始可变变量做的数据修改，视为另一种可变引用。于是，<code>s</code>和<code>r1</code>产生了数据竞争，编译失败。</p>
+<p>更确切地说，Rust编译器在以下三个条件同时满足时，发出编译错误：</p>
 <ul>
-<li>Internal Routing Mesh</li>
-<li>Ingress Routing Mesh</li>
+<li>两个或两个以上的可变引用指向同一份数据。</li>
+<li>其中至少一个可变引用指会向空间写入数据。</li>
+<li>没有同步数据的访问机制。</li>
 </ul>
-<p>本文先介绍Ingress Routing Mesh。它提供以下服务：如果service有绑定发布接口，则此服务可以通过任意Swarm节点的此端口进行访问。并实现负载均衡。</p>
-<h2 id="Ingress-Routing-Mesh实验"><a href="#Ingress-Routing-Mesh实验" class="headerlink" title="Ingress Routing Mesh实验"></a>Ingress Routing Mesh实验</h2><p>首先搭建一个1 manager, 1 worker的docker swarm。详见《docker swarm（一）： 入门，搭建一个简单的swarm集群》。假设环境如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker node ls</span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line">eak5lww1jjhgwbdm0b97dh8gd *   ubuntu              Ready               Active              Leader              19.03.5</span><br><span class="line">y34vyxwzlumiyzr67sksi44gh     ubuntu-2            Ready               Active                                  19.03.5</span><br></pre></td></tr></table></figure>
-<p>我们使用nginx来做实验，下载nginx的image。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker image pull nginx</span><br></pre></td></tr></table></figure>
-<p>创建一个包含两个task的service。–publish定义了docker swarm对外提供服务的端口映射。在下例中，docker swarm对外在8080端口提供服务，中继了nginx container的80端口的报文。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker service create \</span><br><span class="line">  --name my-web \</span><br><span class="line">  --publish published=8080,target=80 \</span><br><span class="line">  --replicas 2 \</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
-<p>检查一下运行状态，在两个节点上分别运行了一个任务。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker service ps my-web</span><br><span class="line">ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE            ERROR               PORTS</span><br><span class="line">vqp43b7wqsvu        my-web.1            nginx:latest        ubuntu-2            Running             Running 29 seconds ago                       </span><br><span class="line">a7nbr7chvldm        my-web.2            nginx:latest        ubuntu              Running             Running 24 seconds ago</span><br></pre></td></tr></table></figure>
-<p>访问swarm nodes的8080端口（在本例中是<br><a href="http://192.168.154.135:8080/和" target="_blank" rel="noopener">http://192.168.154.135:8080/和</a><br><a href="http://192.168.154.136:8080/），都可以看到nginx的初始页面。" target="_blank" rel="noopener">http://192.168.154.136:8080/），都可以看到nginx的初始页面。</a></p>
-<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/nginx_start.png" alt="nginx初始化页"></p>
-<p>下面通过<code>docker service scale</code>把my-web service的任务数改为1。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">spencer@ubuntu:~$ docker service scale my-web=1</span><br><span class="line">my-web scaled to 1</span><br><span class="line">overall progress: 1 out of 1 tasks </span><br><span class="line">1/1: running   [==================================================&gt;] </span><br><span class="line">verify: Service converged </span><br><span class="line">spencer@ubuntu:~$ </span><br><span class="line">spencer@ubuntu:~$ docker service ps my-web</span><br><span class="line">ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE            ERROR               PORTS</span><br><span class="line">vqp43b7wqsvu        my-web.1            nginx:latest        ubuntu-2            Running             Running 27 minutes ago</span><br></pre></td></tr></table></figure>
-<p>现在，只在worker节点（192.168.154.136）上运行。</p>
-<p><strong>关键的来了</strong>，虽然现在service仅在worker节点上运行，但我们访问manager和worker节点的8080端口，都能成功访问nginx。</p>
-<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/nginx_start_2.png" alt="nginx初始化页"></p>
-<h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2><p>Docker Swarm内置一个负载均衡器（Balancer），它会监听任意一个节点上的published端口，将端口上的请求中继到容器中。</p>
-<p>实际访问的容器，不一定与用户访问的IP属于同一节点，可能在另一个节点上。</p>
-<p><img src="https://xs-upload.oss-cn-hangzhou.aliyuncs.com/img/ingress-routing-mesh.png" alt="Ingress Routing Mesh"></p>
-<p>在node与node之间，docker swarm建立<a href="https://docs.docker.com/network/overlay/" target="_blank" rel="noopener">overlay网络</a>（名字为ingress），用于容器与容器之间的通信。</p>
-<p>Routing Mesh就是基于ingress overlay网络，实现的节点间的报文转发。</p>
 
 
                 <hr>
@@ -229,13 +230,9 @@
 
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2020/02/14/v-day/" data-toggle="tooltip" data-placement="top" title="最长情的告白">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2020/02/06/docker-swarm-hello/" data-toggle="tooltip" data-placement="top" title="docker swarm（一） 入门">Next Post &rarr;</a>
+                            <a href="/2021/05/30/rust-owner-compile/" data-toggle="tooltip" data-placement="top" title="Rust所有权编译错误解析">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -282,11 +279,9 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#docker" title="docker">docker</a>
+                          <a class="tag" href="/tags/#rust" title="rust">rust</a>
                         
-                          <a class="tag" href="/tags/#docker swarm" title="docker swarm">docker swarm</a>
-                        
-                          <a class="tag" href="/tags/#容器" title="容器">容器</a>
+                          <a class="tag" href="/tags/#引用" title="引用">引用</a>
                         
                     </div>
                 </section>
@@ -318,8 +313,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "/";
-    var disqus_identifier = "http://47.114.76.212/2020/02/11/docker-swarm-inggress-routing-mesh/";
-    var disqus_url = "http://47.114.76.212/2020/02/11/docker-swarm-inggress-routing-mesh/";
+    var disqus_identifier = "http://47.114.76.212/2021/06/14/rust-ref/";
+    var disqus_url = "http://47.114.76.212/2021/06/14/rust-ref/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
